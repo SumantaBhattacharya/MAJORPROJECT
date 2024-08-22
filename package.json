@@ -1,0 +1,29 @@
+{
+  "name": "majorproject",
+  "version": "1.0.0",
+  "description": "MAJORPROJECT-1",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -r dotenv/config index.js"
+  },
+  "keywords": [
+    "javascript"
+  ],
+  "author": "sumanta bhattacharya",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "ejs-mate": "^4.0.0",
+    "express": "^4.19.2",
+    "joi": "^17.13.3",
+    "method-override": "^3.0.0",
+    "mongoose": "^8.5.3",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}

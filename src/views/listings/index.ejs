@@ -1,0 +1,35 @@
+<% layout("/layouts/boilerplate") %>
+<body>
+    <div class="container" style="padding-top: 2vw;">
+        <!-- <h1>Wonderlust Listings</h1>
+        <form action="/listings/new" method="get">
+            <button>Create New Listing</button>
+        </form> -->
+        <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 "><!-- row-cols-lg-3 row-cols-md-2 row-cols-sm-1 -->
+            <% for(let listing of allUsers) { %>
+            <a href="/listings/<%=listing._id%>" class="listing-link">
+                <div class="card col" ><!-- card col -->
+                    <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 20rem;">
+                    <div class="card-img-overlay">❤</div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <li><strong>Title:</strong> <%=listing.title%></li> <br>
+                            <strong>Price:</strong> &#8377;<%= listing.price.toLocaleString("en-IN")%> /night <br>
+                            <strong>Country:</strong> <%= listing.country %>
+                        </p>
+                    </div>
+                </div>
+            </a>
+            <% } %>
+        </div>
+
+        <!-- <ul>
+            for(let listing of allUsers) {
+                <li><a href="/listings/listing._id%>"><strong>Title:</strong><listing.title%></a></li> <br>
+            }
+        </ul> -->
+    </div>
+</body>
+<!-- row-cols-lg-3 row-cols-md-2 row-cols-sm-1 
+     
+-->
