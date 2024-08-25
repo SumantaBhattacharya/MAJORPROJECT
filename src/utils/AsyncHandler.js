@@ -1,6 +1,9 @@
-module.exports = (fn)=>{
-    return (req,res,next)=> {
-        fn(req,res,next).catch(next)
-    }
-}
+// src/utils/AsyncHandler.js
 
+const wrapAsync = (fn) => {
+    return (req, res, next) => {
+        Promise.resolve(fn(req, res, next)).catch(next);
+    };
+};
+
+module.exports = wrapAsync;

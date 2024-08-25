@@ -1,27 +1,104 @@
 <% layout("/layouts/boilerplate") %>
 
-<div class="container my-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <h3 class="text-center mb-4">Listing Details</h3>
-            <div class="card shadow-sm">
-                <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>Title:</strong> <%= listing.title %></li>
-                        <li class="list-group-item"><strong>Description:</strong> <%= listing.description %></li>
-                        <li class="list-group-item"><strong>Price:</strong> &#8377;<%= listing.price.toLocaleString("en-IN") %></li>
-                        <li class="list-group-item"><strong>Location:</strong> <%= listing.location %></li>
-                        <li class="list-group-item"><strong>Country:</strong> <%= listing.country %></li>
-                    </ul>
-                </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="/listings/<%= listing._id %>/edit" class="btn btn-primary">Edit this listing</a>
-                    <form action="/listings/<%= listing._id %>?_method=DELETE" method="post">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h3 class="text-center mb-4">Listing Details</h3>
+                <div class="card shadow-sm">
+                    <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing_image">
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><strong>Title:</strong>
+                                <%= listing.title %>
+                            </li>
+                            <li class="list-group-item"><strong>Description:</strong>
+                                <%= listing.description %>
+                            </li>
+                            <li class="list-group-item"><strong>Price:</strong> &#8377;<%=
+                                    listing.price.toLocaleString("en-IN") %>
+                            </li>
+                            <li class="list-group-item"><strong>Location:</strong>
+                                <%= listing.location %>
+                            </li>
+                            <li class="list-group-item"><strong>Country:</strong>
+                                <%= listing.country %>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <a href="/listings/<%= listing._id %>/edit" class="btn btn-primary">Edit this listing</a>
+                        <form action="/listings/<%= listing._id %>?_method=DELETE" method="post">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
                 </div>
             </div>
+            <div style="margin-bottom: 2vw;" class="col-md-8 offset-md-2">
+                <h4 class="text-center mb-4">Please provide a review</h4>
+                <form action="/listings/<%= listing._id %>/reviews" method="post" novalidate class="needs-validation">
+                    <div class="form-group mb-3">
+                        <label for="rating" class="form-label">Your Rating:</label>
+                        <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="comment" class="form-label">Comments</label>
+                        <textarea name="review[comment]" id="comment" cols="30" rows="5" class="form-control"
+                            style="resize: none;" required></textarea>
+                        <div class="invalid-feedback">Please select a valid comment.</div>
+                        <div class="valid-feedback">A valid comment</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </form>
+            </div>
+            <hr>
+
+
+            <!-- Reviews Section -->
+            <div class="d-flex flex-wrap justify-content-center">
+                <% listing.reviews.forEach(review=> { %>
+                    <div class="card mb-3 mx-2" style="width: 18rem;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <!-- Fixed Image Size -->
+                                <img src="https://static.vecteezy.com/system/resources/previews/019/896/008/original/male-user-avatar-icon-in-flat-design-style-person-signs-illustration-png.png"
+                                    class="rounded-circle" alt="user_image"
+                                    style="width: 50px; height: 50px; object-fit: cover;">
+                                <p class="m-0 ms-3">
+                                    <%= review.author %>
+                                </p>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted">All reviews by our trusted customers</h6>
+                            <div class="review-item mb-3 p-2 border rounded">
+                                <p class="card-text"><i class="fas fa-comment"></i>
+                                    <%= review.comment %>
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-star text-warning"></i>
+                                    <%= review.rating %> stars
+                                </p>
+
+                                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="post" class="mb-3">
+                                    <button type="submit" class="btn btn-dark btn-sm">Delete</button>
+                                </form>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <% }) %>
+            </div>
+
+            <!-- End of Reviews Section -->
+
+
         </div>
     </div>
-</div>
+
+    <!-- Deleting Reviws
+ Mongo $pull operator
+ $pull
+ The $pull operator removes from an existing array all instances of a valaue or values that match a specified condition
+ 
+ /listings/:id/reviews/:reviewId
+ -->

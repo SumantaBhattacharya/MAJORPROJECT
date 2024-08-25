@@ -1,12 +1,13 @@
 
 const express = require("express");
 const Listing = require("./src/models/listing.models.js")
+const Review = require("./src/models/review.models.js")
 const ApiResponse = require("./src/utils/ApiResponse.js")
 const methodOverride = require("method-override")
 const ejsMate = require("ejs-mate")
 const wrapAsync = require("./src/utils/AsyncHandler.js")
 const ApiError = require("./src/utils/ApiError.js")
-const {listingSchema} = require("./schema.js")
+const {listingSchema,reviewSchema} = require("./schema.js")
 const path = require("path")
 
 const app = express();
@@ -33,6 +34,19 @@ const validateListing = (req,res,next)=>{
         let errMsg = error.details.map((el)=> el.message).join(",")
         throw new ApiError(400,errMsg)
     }//schema server side error handling
+    else{
+        next();
+    }
+}
+
+
+const validateReview = (req,res,next)=>{
+    let {error} = reviewSchema.validate(req.body);
+    // console.log(result);
+    if(error){
+        let errMsg = error.details.map((el)=> el.message).join(",")
+        throw new ApiError(400,errMsg)
+    }
     else{
         next();
     }
@@ -66,9 +80,9 @@ app.get("/listings/new",  wrapAsync((req, res) => {
 //2 show
 app.get("/listings/:id",  wrapAsync(async (req, res) => {
     let { id } = req.params;
-    const user = await Listing.findById(id);
+    const user = await Listing.findById(id).populate("reviews");
     res.render("listings/show.ejs", { listing: user })
-}))
+}))// without populate we have the access of id
 
 //create 
 /*
@@ -85,39 +99,34 @@ app.post("/listings", async(req,res)=>{
 })
 */
 // 4 create route show
-app.post("/listings",validateListing, wrapAsync(async (req, res, next) => {
-        if(!req.body.listing){
-            throw new ApiError(400, "send valid data for listing")
+app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {
+    try {
+        if (!req.body.listing) {
+            throw new ApiError(400, "Send valid data for listing");
         }
 
-        // let result = listingSchema.validate(req.body);
-        // console.log(result);
-        // if(result.error){
-        //     throw new ApiError(400, result.error)
-        // }
+        let listing = req.body.listing;
 
-        let listing = req.body.listing;//req.body.listing from new ejs
-        // Create a new listing document using the extracted data
-        const newlisting = new Listing(listing)
-        /*if(!newlisting.description){
-            throw new ApiError(400, "description is missing")
+        // Apply default values if image fields are missing
+        if (!listing.image) {
+            listing.image = {
+                filename: "default_filename.png",
+                url: "https://images.unsplash.com/photo-1432889490240-84df33d47091?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGJlYWNofGVufDB8fDB8fHww"
+            };
+        } else {
+            // Apply default values if individual image fields are missing
+            listing.image.filename = listing.image.filename || "default_filename.png";
+            listing.image.url = listing.image.url || "https://images.unsplash.com/photo-1432889490240-84df33d47091?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGJlYWNofGVufDB8fDB8fHww";
         }
-        if(!newlisting.title){
-            throw new ApiError(400, "title is missing")
-        }
-        if(!newlisting.country){
-            throw new ApiError(400, "country is missing")
-        }
-        if(!newlisting.location){
-            throw new ApiError(400, "location is missing")
-        }*/
-        
-        // Save the new listing to the database
-        await newlisting.save()
-        // Redirect to the listing-users page after saving
+
+        const newListing = new Listing(listing);
+        await newListing.save();
         res.redirect("/listing-users");
+    } catch (err) {
+        next(err); // Pass to error-handling middleware
+    }
+}));
 
-}))
 
 //5 
 app.get("/listings/:id/edit",  wrapAsync(async (req, res) => {
@@ -142,25 +151,35 @@ app.get("/listings/:id/edit",  wrapAsync(async (req, res) => {
 // });
 
 // update route
-app.put("/listings/:id",validateListing,  wrapAsync(async (req, res) => {
-    // if(!req.body.listing){
-    //     throw new ApiError(400, "send valid data for listing")
-    // }
+app.put("/listings/:id", validateListing, wrapAsync(async (req, res) => {
     let { id } = req.params;
-    // Retrieve the existing listing to get the current image data
-    let listing = await Listing.findById(id);// we didnt use the mnethod because image is getting default so updating the whole will make the image dissaper
+    let listing = await Listing.findById(id);
 
-    // Update the listing with the new data, preserving the image if it's not provided
-    listing.title = req.body.title || listing.title;
-    listing.description = req.body.description || listing.description;
-    listing.price = req.body.price || listing.price;
-    listing.location = req.body.location || listing.location;
-    listing.country = req.body.country || listing.country;
+    /*if(!newlisting.description){
+            throw new ApiError(400, "description is missing")
+        }
+        if(!newlisting.title){
+            throw new ApiError(400, "title is missing")
+        }
+        if(!newlisting.country){
+            throw new ApiError(400, "country is missing")
+        }
+        if(!newlisting.location){
+            throw new ApiError(400, "location is missing")
+        }*/
 
 
+    listing.title = req.body.listing.title || listing.title;
+    listing.description = req.body.listing.description || listing.description;
+    listing.price = req.body.listing.price || listing.price;
+    listing.location = req.body.listing.location || listing.location;
+    listing.country = req.body.listing.country || listing.country;
+    listing.image.url = req.body.listing.image.url || listing.image.url;
 
     await listing.save();
     res.redirect(`/listings/${id}`);
+
+
 }));
 
 
@@ -171,19 +190,118 @@ app.delete("/listings/:id",  wrapAsync(async (req, res) => {
     res.redirect("/listing-users")
 }));
 
+// reviews lists
+// Post route
+
+app.post("/listings/:id/reviews",validateReview,  wrapAsync(async (req, res) => {
+    let { id } = req.params;
+    // Access fields directly from req.body
+    // const listing = await Listing.findByIdAndUpdate(id, { $push: { reviews: req.body } }, { new: true });
+
+    let listing = await Listing.findById(id)//Listing.findById(req.params.id)
+
+    if (!listing) {
+        throw new ApiError(404, "Listing not found!");
+    }
+
+    // Create a new review instance
+    let newReview = await Review(req.body.review)//review[rating]
+    await newReview.save();
+    listing.reviews.push(newReview._id);// 1) Joi schema 2. schema validate function 3. pass as a middlewere
+
+    // Update the listing with the new review, preserving the other reviews if it's not provided
+    await listing.save();
+ 
+
+    console.log("new review saved");
+    // res.send("response sended")
+    res.redirect(`/listings/${id}`);//listing._id
+}));
+
+// delete route for reviews delCust 
+
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req,res)=>{
+    let { id, reviewId } = req.params;
+    // const listing = await Listing.findByIdAndUpdate(id, { $pull: { reviews: { _id: reviewId } } }, { new: true });
+    // let listing = await Listing.findById(id)
+    // let reviewToRemove = listing.reviews.id(reviewId)
+    // if(!reviewToRemove){
+    //     throw new ApiError(404, "Review not found!");
+    // }
+    // reviewToRemove.remove();
+    // await listing.save();
+    // console.log("review deleted");
+
+    // Remove the review's ObjectId from the listing's reviews array
+    let listing = await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } }, { new: true });
+
+    if (!listing) {
+        throw new ApiError(404, "Listing not found!");
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+
+
+    // res.send("response sended")  // we can send a success message or redirect to the listing page instead of res.send() for simplicity.
+    res.redirect(`/listings/${id}`);
+}));
+
+
 app.all("*",(req,res,next)=>{
     next(new ApiError(404, "Resource not found!"));
 })
 
 app.use((err, req, res, next) => {
-    let {statusCode=500,message} = err;
-    // res.status(statusCode).send(message)
-    res.status(statusCode).render("listings/error.ejs",{message})
-})
+    if (!res.headersSent) {
+        res.status(err.status || 500).render("listings/error.ejs", { message: err.message });
+    } else {
+        next(err);
+    }
+});
+
 
 // Export app
 module.exports = app;
 
 /*
 UPDATE: EDIT & UPDATE ROUTE
+e0bcedace87ed77bcad4') } }
+)
+
+);
+
+
+// Export app
+module.exports = app;
+
+/*
+UPDATE: EDIT & UPDATE ROUTE
+
+Desert Oasis in Dubai
+
+db.listings.updateOne(
+  { title: "Ladakh" },
+  { $pull: { reviews: ObjectId('66c9e0bcedace87ed77bcad4') } }
+)
+
+e0bcedace87ed77bcad4') } }
+)
+
+);
+
+
+// Export app
+module.exports = app;
+
+/*
+UPDATE: EDIT & UPDATE ROUTE
+
+Desert Oasis in Dubai
+
+db.listings.updateOne(
+  { title: "Ladakh" },
+  { $pull: { reviews: ObjectId('66c9e0bcedace87ed77bcad4') } }
+)
+
+db.reviews.deleteOne({_id: ObjectId('66ca05d92c8ce71a4107c46a')})
 */
