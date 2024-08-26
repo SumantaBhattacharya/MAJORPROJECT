@@ -82,6 +82,32 @@ app.use((req,res)=>{
 - [cookies in general](https://en.wikipedia.org/wiki/HTTP_cookie)
 - [cookies in Express](https://expressjs.com/en/api.html#res.cookie)
 - [cookie-parser](https://www.npmjs.com/package/cookie-parser)
+- [express-session](https://www.npmjs.com/package/express-session)
+- [session-stores](https://www.npmjs.com/package/express-session#compatible-session-stores)
+- [flash](https://www.npmjs.com/package/connect-flash)
+- [expressjs](https://expressjs.com/)
+- [api.html](https://expressjs.com/en/api.html)
+- [res](https://expressjs.com/en/4x/api.html#res)
+- [res.locals](https://expressjs.com/en/api.html#res.locals)
+
+# Project Setup
+
+To set up the project, you need to install the required dependencies and devDependencies. Use the following commands:
+
+## Installing Dependencies
+
+```bash
+npm i dotenv ejs ejs-mate express joi method-override mongoose multer
+npm i cookie-parser
+npm i express-session
+npm i connect-flash
+```
+### Installing DevDependencies
+--- 
+
+```bash
+npm i -D prettier
+```
 
 ```javascript
 app.use([path,] callback [, callback...])
@@ -739,5 +765,384 @@ app.get("/getcookies",(req,res)=>{
 })
 
 ```
+```javascript
 
+//https://expressjs.com/en/4x/api.html#req.cookies
+
+// When using cookie-parser middleware, this property is an object that contains cookies sent by the request. 
+// Cookie: name=tj
+console.dir(req.cookies.name)//req.cookies undefined without cookie-parser
+// => 'tj'
+
+// npm i cookie-parser
+// npm i cookie-parser
+```
+
+* *https://expressjs.com/en/4x/api.html#req.cookies*
+
+```bash
+  npm i cookie-parser
+```
+```javascript
+ const cookieParser = require("cookie-parser")
+
+ //middlewere
+ app.use(cookieParser());
+
+ //cookies noting but a piece of information which we can send with response and get/parse using cookie-parser
+
+```
+
+# ***Signeed Cookies***
+
+### **Send** ***Signed Cookie***
+- [cookies in Express](https://expressjs.com/en/api.html#res.cookie)
+```javascript
+
+// https://expressjs.com/en/api.html#res.cookie
+
+// To protect our cookies fro  unintentional tempering
+// property type     Description
+// signed   boolean  Indicates if the cookie should be signed
+
+app.use(cookieParser("secretcode"))// data encode(un-readable)
+
+app.get("/getssignedcookie",(req,res)=>{
+    res.cookie("color","red",{signed:true});
+    res.send("done!")
+})
+
+```
+
+### **Verify** ***Signed Cookie***
+
+```javascript
+app.get("/verify",(req,res)=>{
+    // req.cookies is to print unsigned cookies
+
+    console.log(req.cookies)// undefined beause its is a signed cookie express differenciates between normal(unsigned) cookies and signed cookies
+
+    // to print signed cookies we use req.signedCookies
+    res.send(req.signedCookies);// if the user tries to temper with the cookies then we will get an empty object
+    // and if we just temper with the value then its will show the name but the value will be false
+});
+```
+
+## ***What is State***
+
+* ***The rules followed by req(request) and res(response) we call it protocol***
+
+### ***Stateful Protocol***
+* ***Stateful protocol require server to save the status and session information.***
+   * ***ef- ftp(File Transfer Protocol)***
+
+### ***Stateless Protocol***
+
+* ***Stateless Protocol does not require the server to retain the server information***
+  * ***eg - http***
+
+***Browser(Client) --- Node(server)***
+
+**cookie** --- **session**  
+
+## ***Express Session***
+* ***An attempt to make our session stateful.***
+ *(because bt default http is of stateless nature)*
+
+  ***basically express session saves the stateful information of users and creates a id for that session***
+
+```
+Server(Node) Client(Browser)
+session       cookie
+  (101)     ↪  [101] stores in the form of a cookie
+  {
+    item:laptop,
+    item: charger
+  }
+
+  for example: In a E-commerce website an user stores some of the items in the card section if the the user move to the next page, the items will still be there by the session thats why we need to explicitly save the session(information) We stores our temporary informations in the sessions and Database is used for storing parmanent information
+
+```
+
+#### session(options)
+* ***creates a session middlewere with the given options***
+  * ***npm i express-session***
+
+```javascript
+
+const session = require("express-session")// every request get,post,put and delete has now associated with a a session id name connect.sid value would be a random set of characters in the form of a cookie
+
+// Observation
+
+// this session is saved in every single page of the website in the same browser the data will not be changed irrespective of browser (Safari) inspect-elements -> Storage
+// the session value is going to be different in different browser
+
+// using npm package
+
+// Server(Node) Client(Browser)
+// session      cookie
+
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+}));
+
+app.get("/reqcount",(req,res)=>{
+    // req.session.count = 1;
+    if(req.session.count){
+        req.session.count++
+    }else{
+        req.session.count = 1;
+    }
+    res.send(`You send a request to ${req.session.count} times`)// the value of count will be save even on different browser it is saved under a single session
+});// the tracking is done by express-session middlewere
+
+/*
+Options
+express-session accepts these properties in the options object.
+- cookie
+- cookie.domain
+- cookie.expires
+- cookie.httpOnly
+- secret
+- resave
+Required option
+This is the secret used to sign the session ID cookie. 
+This can be either a single secret, or an array of multiple secrets.
+The secret itself should be not easily parsed by a human and would best be a random set of characters.
+Periodic updates of the secret, while ensuring the previous secret is in the array.
+
+- MemoryStore
+     - Warning The default server-side session storage, MemoryStore, is purposely not designed for a production environment. 
+https://www.npmjs.com/package/express-session#compatible-session-stores
+
+- resave (memory/session store) without the the terminal will give warning about deprecation
+    - Forces the session to be saved back to the session store, even if the session was never modified during the request. 
+
+    - by default we set it to false
+
+-  saveUninitialized without the the terminal will give warning about deprecation
+saveUninitialized
+    -Forces a session that is "uninitialized" to be saved to the store. 
+    - by default we set it to true
+
+*/
+```
+
+```javascript
+// Storing & Using Info
+    
+const express = require("express")
+const session = require("express-session")
+
+const app = express()
+
+// middleware
+
+const sessionOptions = {
+    secret: "my secret key",
+    resave: false,//resave: true,
+    saveUninitialized: true
+}
+
+app.use(session(sessionOptions));
+
+app.get("/register", (req, res) => {
+    // req.session.name = req.query.name
+    let { name="anonymous" } = req.query; // Access the 'name' query parameter
+
+    console.log(req.session);//object - Session {cookie: { path: '/', _expires: null, originalMaxAge: null, httpOnly: true }}
+
+    req.session.name = name; // Store the name in the session
+    console.log(req.session.name);//sumanta
+
+    res.send(`Register Page: ${name}`);
+});//http://localhost:8000/register?name=sumanta
+
+app.get("/hello", (req, res) => {
+    res.send(`Hello, ${req.session.name}`);
+});
+
+const PORT = process.env.PORT || 8000
+app.listen(PORT, () => { // middleware
+    console.log(`Server running at http://localhost:${PORT}`);
+});
+
+```
+
+# ***Connect-flash***
+* ***The flash is special area of the session used for storing messages. Messages are written to the flash and cleared after being displayed to the user.***
+
+* *The flash is typically used in combination with redirects, ensuring that the message is available to the next page that is to be rendered.*
+
+* ***Usage***
+
+  * ***Flash messages are stored in the session. First, setup sessions as usual by enabling cookieParser and session middleware. Then, use flash middleware provided by connect-flash.***
+
+```bash
+  npm i cookie-parser
+  npm i express-session
+  npm i connect-flash
+  ```
+
+  ```javascript
+const express = require("express")
+const cookieParser = require("cookie-parser")
+const session = require("express-session")
+const flash = require("connect-flash")
+
+const app = express()
+
+// middleware
+
+app.use(cookieParser());
+
+const sessionOptions = {
+    secret: "my secret key",
+    resave: false,//resave: true,
+    saveUninitialized: true,
+    cookie: { secure: true }
+}
+
+app.use(session(sessionOptions));
+app.use(flash());
+```
+
+* ***install connect-flash***
+  * *https://www.npmjs.com/package/connect-flash*
+  * *Flash messages*
+
+ ```bash
+npm i connect-flash
+```
+
+```javascript
+const flash = require("connect-flash")
+```
+
+```javascript
+import flash from "flash"
+```
+
+```javascript
+const express = require("express");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const flash = require("connect-flash");
+
+const app = express();
+
+// Middleware setup
+app.use(cookieParser('keyboard cat'));
+
+const sessionOptions = {
+    secret: "my secret key",
+    resave: false, // Doesn't save the session if it wasn't modified
+    saveUninitialized: true, // Saves a new session even if it hasn't been modified
+    cookie: { 
+        secure: false, // Set to false for local development (HTTP); true for production (HTTPS)
+        maxAge: 60000 // 1 minute
+    }
+};
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+/*
+app.configure(function() {
+  app.use(express.cookieParser('keyboard cat'));
+  app.use(express.session(sessionOptions,{ cookie: { maxAge: 60000 }}));
+  app.use(flash());
+});
+*/
+```
+
+```javascript
+// practical example-1
+const express = require("express");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const flash = require("connect-flash");
+const path = require("path")
+
+const app = express();
+
+// Middleware setup
+app.use(cookieParser('keyboard cat'));
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+const sessionOptions = {
+    secret: "my secret key",
+    resave: false, // Doesn't save the session if it wasn't modified
+    saveUninitialized: true, // Saves a new session even if it hasn't been modified
+    cookie: { 
+        secure: false, // Set to false for local development (HTTP); true for production (HTTPS)
+        maxAge: 60000 // 1 minute
+    }
+};
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.get("/", (req, res) => {
+    res.send("Hey!")
+})
+
+app.get("/register", (req, res) => {
+    // req.session.name = req.query.name
+    let { name="anonymous" } = req.query; // Access the 'name' query parameter
+
+    console.log(req.session);//object - Session {cookie: { path: '/', _expires: null, originalMaxAge: null, httpOnly: true }}
+
+    req.session.name = name; // Store the name in the session
+    console.log(req.session.name);//sumanta
+
+    // Set a flash message by passing the key, followed by the value, to req.flash().
+    //         key          message
+    req.flash('success', 'user registered successfully!')
+
+    res.send(`Register Page: ${name}`);
+});//http://localhost:8000/register?name=sumanta
+
+app.get("/hello", (req, res) => {
+    // res.send(`Hello, ${req.session.name}`);
+    //console.log(req.flash("success"));//flash message is being cleared after it is accessed once.
+
+    // const successMessage = req.flash("success");
+    // res.render("index.ejs", { name: req.session.name, msg: successMessage });
+    
+    res.render("index.ejs",{name: req.session.name, msg: req.flash("success")})
+});//http://localhost:8000/login?name=sumanta
+
+const PORT = process.env.PORT || 8000
+app.listen(PORT, () => { // middleware
+    console.log(`Server running at http://localhost:${PORT}`);
+});
+
+```
+```javascript
+// res.local
+// ---------
+
+app.use((req,res,next)=>{
+    res.locals.messages = req.flash("success");
+    next();
+})
+```
+
+- [res.locals](https://expressjs.com/en/api.html#res.locals)
+
+```javascript
+// Use this property to set variables accessible in templates rendered with res.render.
+app.use(function (req, res, next) {
+  // Make `user` and `authenticated` available in templates
+  res.locals.user = req.user
+  res.locals.authenticated = !req.user.anonymous
+  next()
+})
+```
 
