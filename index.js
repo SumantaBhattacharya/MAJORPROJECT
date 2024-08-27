@@ -30,9 +30,12 @@ connectDB()
     .catch((err) => {
         console.log("MONGO DB ERROR!", err);
     })
-
+// npx nodemon index.js
 // router inside controller but it can be also in different file
 // app.get("/",(req,res)=>{
 //     res.send("Hi")
 // })
-
+/*
+cd C:\Users\SUDIP BHATTACHARYA\Desktop\BACK_PROJECTS\MAJORPROJECT
+rd /s /q classroom
+*/
