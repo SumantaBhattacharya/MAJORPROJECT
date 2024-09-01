@@ -9,7 +9,9 @@
         method="post"
         novalidate
         class="needs-validation"
+        
       >
+      <!-- enctype="multipart/form-data" -->
         <div class="mb-3">
           <label for="title" class="form-label">Title</label><br />
           <input
@@ -40,14 +42,20 @@
         </div>
 
         <div class="mb-3">
-          <label for="image" class="form-label">Image URL</label><br />
+          <label for="image" class="form-label">Image File</label><br />
           <input
             id="image"
             class="form-control"
-            type="text"
+            type="file"
             name="listing[image][url]"
             value="<%= listing.image.url %>"
+            
           />
+        </div>
+
+        <div class="mb-3">
+          <p>Origianl listing image</p> <br>
+          <img src="<%= listing.image.url %>" alt="">
         </div>
 
         <div class="row">

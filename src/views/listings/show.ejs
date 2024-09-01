@@ -11,6 +11,9 @@
                             <li class="list-group-item"><strong>Title:</strong>
                                 <%= listing.title %>
                             </li>
+                            <li class="list-group-item"><strong>owner:</strong>
+                                <%= listing.owner.username %>
+                            </li>
                             <li class="list-group-item"><strong>Description:</strong>
                                 <%= listing.description %>
                             </li>
@@ -25,31 +28,54 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="card-footer d-flex justify-content-between">
-                        <a href="/listings/<%= listing._id %>/edit" class="btn btn-primary">Edit this listing</a>
-                        <form action="/listings/<%= listing._id %>?_method=DELETE" method="post">
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </div>
+                    <% if(currUser && currUser._id.equals(listing.owner._id)){%>
+                        <!--authorisation first of all the cuurent user should exists like after login then check if its equals to the owner of the listing -->
+                        <div class="card-footer d-flex justify-content-between">
+                            <a href="/listings/<%= listing._id %>/edit" class="btn btn-primary">Edit this listing</a>
+                            <form action="/listings/<%= listing._id %>?_method=DELETE" method="post">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    <% }%>
                 </div>
             </div>
+            <% if(currUser){%>
+            <!-- if the current user logged in the the review page will only show to him -->
             <div style="margin-bottom: 2vw;" class="col-md-8 offset-md-2">
                 <h4 class="text-center mb-4">Please provide a review</h4>
                 <form action="/listings/<%= listing._id %>/reviews" method="post" novalidate class="needs-validation">
-                    <div class="form-group mb-3">
+                    <!-- <div class="form-group mb-3">
                         <label for="rating" class="form-label">Your Rating:</label>
                         <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
-                    </div>
+                    </div> -->
+                    <fieldset class="starability-fade form-group mb-3">
+                        <legend class="form-label">Your Rating:</legend>
+                        <input type="radio" id="first-rate1" name="review[rating]" value="1" checked /> <!-- Default selected -->
+                        <label for="first-rate1" title="Terrible">1 star</label>
+                        <input type="radio" id="first-rate2" name="review[rating]" value="2" />
+                        <label for="first-rate2" title="Not good">2 stars</label>
+                        <input type="radio" id="first-rate3" name="review[rating]" value="3" />
+                        <label for="first-rate3" title="Average">3 stars</label>
+                        <input type="radio" id="first-rate4" name="review[rating]" value="4" />
+                        <label for="first-rate4" title="Very good">4 stars</label>
+                        <input type="radio" id="first-rate5" name="review[rating]" value="5" />
+                        <label for="first-rate5" title="Amazing">5 stars</label>
+                    </fieldset>
+                    
+                    
                     <div class="form-group mb-3">
                         <label for="comment" class="form-label">Comments</label>
                         <textarea name="review[comment]" id="comment" cols="30" rows="5" class="form-control"
                             style="resize: none;" required></textarea>
-                        <div class="invalid-feedback">Please select a valid comment.</div>
-                        <div class="valid-feedback">A valid comment</div>
+                        <div class="invalid-feedback">Please provide a valid comment.</div>
+                        <div class="valid-feedback">Thank you for your comment!</div>
                     </div>
+                    
                     <button type="submit" class="btn btn-primary w-100">Submit</button>
                 </form>
+                
             </div>
+            <% }%>
             <hr>
 
 
@@ -64,7 +90,7 @@
                                     class="rounded-circle" alt="user_image"
                                     style="width: 50px; height: 50px; object-fit: cover;">
                                 <p class="m-0 ms-3">
-                                    <%= review.author %>
+                                    @<%= review.author.username %>
                                 </p>
                             </div>
                             <h6 class="card-subtitle mb-2 text-muted">All reviews by our trusted customers</h6>
@@ -72,15 +98,19 @@
                                 <p class="card-text"><i class="fas fa-comment"></i>
                                     <%= review.comment %>
                                 </p>
-                                <p class="card-text">
+                                <!-- <p class="card-text">
                                     <i class="fas fa-star text-warning"></i>
-                                    <%= review.rating %> stars
+                                    review.rating stars
+                                </p> -->
+                                
+                                <p class="starability-result card-text" data-rating=<%= review.rating %>>
                                 </p>
-
-                                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="post" class="mb-3">
+                                  
+                                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                    method="post" class="mb-3">
                                     <button type="submit" class="btn btn-dark btn-sm">Delete</button>
                                 </form>
-                                
+
                             </div>
                         </div>
                     </div>

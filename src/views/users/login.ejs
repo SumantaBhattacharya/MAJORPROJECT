@@ -1,0 +1,31 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="row mt-3">
+    <div class="col-8 offset-2">
+        <h2 style="font-family: 'Poppins', sans-serif; color: white; border: 2px solid black; border-radius: 20px; text-align: center; padding: 1vw; background-color: brown;"><b>Login</b> to Wanderlust platform</h2>
+        <hr>
+        <form action="/login" method="post" novalidate class="needs-validation">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required style="font-family: 'Poppins', sans-serif;">
+                <div class="valid-feedback">
+                    Looks good!
+                </div>
+                <div class="invalid-feedback">
+                    Please provide your username.
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required minlength="6" style="font-family: 'Poppins', sans-serif;">
+                <div class="valid-feedback">
+                    Password looks good!
+                </div>
+                <div class="invalid-feedback">
+                    Please provide your password.
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="font-family: 'Poppins', sans-serif;">Login</button>
+        </form>
+    </div>
+</div>

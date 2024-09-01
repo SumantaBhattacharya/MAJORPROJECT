@@ -6,3 +6,11 @@ errors.txt
 router
 listings.js
 mongost.txt
+MongoAggregation.txt
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test

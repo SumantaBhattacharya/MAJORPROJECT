@@ -14,7 +14,9 @@ connectDB()
 
 const initDBase = async()=>{
     await Listing.deleteMany({});
-    await Listing.insertMany(initDB.data);
+    const listingsWithOwners = initDB.data.map((obj)=> ({...obj, owner: "66d009c7ce42cfc4ef5b701b"}))//map usually creates a new array
+    //await Listing.insertMany(initDB.data);// its only inserting the previous data 
+    await Listing.insertMany(listingsWithOwners);// its only inserting the previous data 
     console.log("Predefined Data was Deleted and New Data is Added ");
 }
 
